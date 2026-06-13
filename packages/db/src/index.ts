@@ -5,6 +5,17 @@ import { PrismaClient } from "@prisma/client";
 config({ path: path.resolve(__dirname, "../../../.env") });
 config({ path: path.resolve(__dirname, "../.env") });
 
+function findMonorepoRoot() {
+  const cwd = process.cwd();
+  if (cwd.includes(`${path.sep}apps${path.sep}`)) {
+    return path.resolve(cwd, "../..");
+  }
+  if (cwd.endsWith(`${path.sep}apps`) || cwd.includes(`${path.sep}apps${path.sep}web`) || cwd.includes(`${path.sep}apps${path.sep}admin`)) {
+    return path.resolve(cwd, "../..");
+  }
+  return cwd;
+}
+
 function ensureDatabaseUrl() {
   const url = process.env.DATABASE_URL;
   if (!url?.startsWith("file:")) return;
@@ -15,7 +26,7 @@ function ensureDatabaseUrl() {
     return;
   }
 
-  const dbFile = path.resolve(__dirname, "..", "prisma", "dev.db");
+  const dbFile = path.join(findMonorepoRoot(), "packages", "db", "prisma", "dev.db");
   process.env.DATABASE_URL = `file:${dbFile}`;
 }
 
