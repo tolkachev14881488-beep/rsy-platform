@@ -19,7 +19,8 @@
     "deploy": "docker compose -f docker-compose.prod.yml up -d --build",
     "deploy:down": "docker compose -f docker-compose.prod.yml down",
     "deploy:logs": "docker compose -f docker-compose.prod.yml logs -f",
-    "start:prod": "scripts\\start-prod.bat"
+    "start:prod": "scripts\\start-prod.bat",
+    "up": "powershell -ExecutionPolicy Bypass -File scripts/up.ps1"
   },
   "devDependencies": {
     "tsx": "^4.19.0",

@@ -11,4 +11,5 @@ packages/db/dev.db
 .DS_Store
 coverage/
 .turbo/
-.vercel
+logs/
+LINKS.txt
