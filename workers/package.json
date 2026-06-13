@@ -1,0 +1,21 @@
+{
+  "name": "workers",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@rsy/db": "*",
+    "@rsy/seo": "*",
+    "@rsy/config": "*",
+    "@rsy/yandex": "*",
+    "@rsy/queue": "*",
+    "@rsy/automation": "*",
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  }
+}

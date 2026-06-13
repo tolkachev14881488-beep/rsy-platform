@@ -1,0 +1,46 @@
+# fly.io deploy: fly launch && fly deploy
+# Requires: flyctl install + fly auth login
+
+app = "rsy-platform"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  SITE_NAME = "СоветыДома"
+
+[mounts]
+  source = "rsy_data"
+  destination = "/data"
+
+[[services]]
+  internal_port = 3000
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 100
+    soft_limit = 80
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    path = "/"
+
+[processes]
+  web = "npm run start --workspace=apps/web"
+  admin = "npm run start --workspace=apps/admin"
+  worker = "npm run worker"

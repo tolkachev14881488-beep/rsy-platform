@@ -1,0 +1,31 @@
+{
+  "name": "rsy-platform",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "workers"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web & npm run dev --workspace=apps/admin",
+    "dev:web": "npm run dev --workspace=apps/web",
+    "dev:admin": "npm run dev --workspace=apps/admin",
+    "build": "npm run build --workspaces --if-present",
+    "db:generate": "npm run generate --workspace=packages/db",
+    "db:push": "npm run push --workspace=packages/db",
+    "db:seed": "npm run seed --workspace=packages/db",
+    "worker": "npm run start --workspace=workers",
+    "automate": "tsx scripts/automate.ts",
+    "deploy": "docker compose -f docker-compose.prod.yml up -d --build",
+    "deploy:down": "docker compose -f docker-compose.prod.yml down",
+    "deploy:logs": "docker compose -f docker-compose.prod.yml logs -f",
+    "start:prod": "scripts\\start-prod.bat"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

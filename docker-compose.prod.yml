@@ -1,0 +1,78 @@
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+  web:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/dev.db
+      REDIS_URL: redis://redis:6379
+      SITE_DOMAIN: ${SITE_DOMAIN:-localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SITE_NAME: ${SITE_NAME:-СоветыДома}
+      YANDEX_METRIKA_ID: ${YANDEX_METRIKA_ID:-}
+      YANDEX_WEBMASTER_TOKEN: ${YANDEX_WEBMASTER_TOKEN:-}
+      YANDEX_WEBMASTER_HOST_ID: ${YANDEX_WEBMASTER_HOST_ID:-}
+      YANDEX_VERIFICATION: ${YANDEX_VERIFICATION:-}
+      RSY_PARTNER_ID: ${RSY_PARTNER_ID:-}
+      RSY_BLOCK_HEADER: ${RSY_BLOCK_HEADER:-}
+      RSY_BLOCK_IN_CONTENT: ${RSY_BLOCK_IN_CONTENT:-}
+      RSY_BLOCK_SIDEBAR: ${RSY_BLOCK_SIDEBAR:-}
+      RSY_BLOCK_FOOTER: ${RSY_BLOCK_FOOTER:-}
+    volumes:
+      - db_data:/data
+    depends_on:
+      - redis
+    command: npm run start --workspace=apps/web
+
+  admin:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/dev.db
+      REDIS_URL: redis://redis:6379
+      SITE_DOMAIN: ${SITE_DOMAIN:-localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      SITE_NAME: ${SITE_NAME:-СоветыДома}
+      YANDEX_METRIKA_ID: ${YANDEX_METRIKA_ID:-}
+      YANDEX_WEBMASTER_TOKEN: ${YANDEX_WEBMASTER_TOKEN:-}
+      YANDEX_WEBMASTER_HOST_ID: ${YANDEX_WEBMASTER_HOST_ID:-}
+      RSY_PARTNER_ID: ${RSY_PARTNER_ID:-}
+    volumes:
+      - db_data:/data
+    depends_on:
+      - redis
+      - web
+    command: npm run start --workspace=apps/admin
+
+  worker:
+    build: .
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: file:/data/dev.db
+      REDIS_URL: redis://redis:6379
+      SITE_DOMAIN: ${SITE_DOMAIN:-localhost:3000}
+      SITE_URL: ${SITE_URL:-http://localhost:3000}
+      YANDEX_WEBMASTER_TOKEN: ${YANDEX_WEBMASTER_TOKEN:-}
+      YANDEX_WEBMASTER_HOST_ID: ${YANDEX_WEBMASTER_HOST_ID:-}
+    volumes:
+      - db_data:/data
+    depends_on:
+      - redis
+      - web
+    command: npm run worker
+
+volumes:
+  db_data:
+  redis_data:

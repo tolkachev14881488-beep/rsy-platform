@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum RsyPlacement {
+  HEADER
+  IN_CONTENT
+  SIDEBAR
+  FOOTER
+}
+
+enum LayoutVariant {
+  A
+  B
+}
+
+model Project {
+  id              String   @id @default(cuid())
+  name            String
+  domain          String   @unique
+  siteUrl         String
+  metrikaId       String?
+  rsyPartnerId    String?
+  webmasterHostId String?
+  niche           String   @default("domestic-tips")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  rsyBlocks          RsyBlock[]
+  keywordClusters    KeywordCluster[]
+  articles           Article[]
+  revenueSnapshots   RevenueSnapshot[]
+  layoutTests        LayoutTest[]
+  trendSnapshots     TrendSnapshot[]
+  automationSettings AutomationSettings?
+}
+
+enum TrendDirection {
+  NEW
+  RISING
+  STABLE
+  FALLING
+}
+
+model TrendSnapshot {
+  id             String          @id @default(cuid())
+  projectId      String
+  keyword        String
+  category       String?
+  score          Float           @default(0)
+  previousScore  Float?
+  direction      TrendDirection  @default(NEW)
+  source         String          @default("yandex_suggest")
+  suggestRank    Int?
+  capturedAt     DateTime        @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, capturedAt])
+  @@index([projectId, keyword])
+  @@index([projectId, direction])
+}
+
+model AutomationSettings {
+  id                 String    @id @default(cuid())
+  projectId          String    @unique
+  enabled            Boolean   @default(true)
+  autoPublish        Boolean   @default(true)
+  maxArticlesPerRun  Int       @default(5)
+  maxArticlesPerDay  Int       @default(20)
+  scanIntervalHours  Int       @default(6)
+  seedKeywords       Json
+  lastRunAt          DateTime?
+  lastRunResult      Json?
+  articlesToday      Int       @default(0)
+  articlesTodayDate  String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model RsyBlock {
+  id        String       @id @default(cuid())
+  projectId String
+  blockId   String
+  placement RsyPlacement
+  label     String?
+  active    Boolean      @default(true)
+  createdAt DateTime     @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, blockId])
+  @@index([projectId, placement])
+}
+
+model KeywordCluster {
+  id          String   @id @default(cuid())
+  projectId   String
+  seedKeyword String
+  keywords    Json
+  volume      Int?
+  intent      String?
+  category    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project  Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  articles Article[]
+
+  @@index([projectId])
+}
+
+model Article {
+  id          String        @id @default(cuid())
+  projectId   String
+  clusterId   String?
+  slug        String
+  title       String
+  description String?
+  content     String
+  faq         Json?
+  status      ArticleStatus @default(DRAFT)
+  wordCount   Int           @default(0)
+  publishedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  project Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  cluster KeywordCluster? @relation(fields: [clusterId], references: [id], onDelete: SetNull)
+
+  @@unique([projectId, slug])
+  @@index([projectId, status])
+  @@index([clusterId])
+}
+
+model RevenueSnapshot {
+  id          String   @id @default(cuid())
+  projectId   String
+  date        DateTime
+  url         String?
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  revenue     Float    @default(0)
+  ctr         Float?
+  rpm         Float?
+  source      String   @default("rsy_csv")
+  createdAt   DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, date])
+  @@index([projectId, url])
+}
+
+model LayoutTest {
+  id            String        @id @default(cuid())
+  projectId     String
+  name          String
+  variant       LayoutVariant
+  config        Json
+  impressions   Int           @default(0)
+  revenue       Float         @default(0)
+  bounceRate    Float?
+  avgTimeOnPage Float?
+  active        Boolean       @default(true)
+  startedAt     DateTime      @default(now())
+  endedAt       DateTime?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, active])
+}

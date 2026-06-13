@@ -1,0 +1,55 @@
+# Render.com Blueprint
+# Dashboard → New → Blueprint → connect repo
+
+services:
+  - type: web
+    name: rsy-web
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: npm run start --workspace=apps/web
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/dev.db
+      - key: SITE_URL
+        sync: false
+    disk:
+      name: rsy-data
+      mountPath: /data
+      sizeGB: 1
+
+  - type: web
+    name: rsy-admin
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: npm run start --workspace=apps/admin
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/dev.db
+
+  - type: worker
+    name: rsy-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: npm run worker
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/data/dev.db
+      - key: REDIS_URL
+        fromService:
+          name: rsy-redis
+          type: redis
+          property: connectionString
+
+  - type: redis
+    name: rsy-redis
+    plan: free
+    ipAllowList: []
