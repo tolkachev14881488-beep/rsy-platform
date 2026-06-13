@@ -6,6 +6,8 @@ dist/
 *.log
 packages/db/prisma/dev.db
 packages/db/prisma/dev.db-journal
+packages/db/prisma/prisma/
+packages/db/dev.db
 .DS_Store
 coverage/
 .turbo/
